@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,14 +36,23 @@ def build_database_config() -> dict[str, object]:
     database_url = get_env("DATABASE_URL")
     if database_url:
         parsed = urlparse(database_url)
-        return {
+        config = {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": parsed.path.lstrip("/"),
-            "USER": parsed.username,
-            "PASSWORD": parsed.password,
+            "USER": unquote(parsed.username) if parsed.username else None,
+            "PASSWORD": unquote(parsed.password) if parsed.password else None,
             "HOST": parsed.hostname,
             "PORT": parsed.port or 5432,
         }
+        query = parse_qs(parsed.query)
+        options = {}
+        if "sslmode" in query and query["sslmode"]:
+            options["sslmode"] = query["sslmode"][-1]
+        if "connect_timeout" in query and query["connect_timeout"]:
+            options["connect_timeout"] = query["connect_timeout"][-1]
+        if options:
+            config["OPTIONS"] = options
+        return config
 
     db_name = get_env("DB_NAME")
     if db_name:
@@ -67,7 +76,6 @@ DEBUG = get_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = get_list("DJANGO_ALLOWED_HOSTS", ["localhost", "127.0.0.1"])
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -77,6 +85,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    "authn",
     "core",
     "user",
 ]
@@ -134,6 +143,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = get_list("DJANGO_CORS_ALLOWED_ORIGINS", [])
 
 SUPABASE_URL = get_env("SUPABASE_URL", "")
+SUPABASE_ANON_KEY = get_env("SUPABASE_ANON_KEY", "")
+SUPABASE_JWKS_URL = get_env("SUPABASE_JWKS_URL", "")
+SUPABASE_JWT_ISSUER = get_env("SUPABASE_JWT_ISSUER", "")
 SUPABASE_JWT_SECRET = get_env("SUPABASE_JWT_SECRET", "")
 SUPABASE_JWT_AUDIENCE = get_env("SUPABASE_JWT_AUDIENCE", "")
 SUPABASE_JWT_ALGORITHM = get_env("SUPABASE_JWT_ALGORITHM", "HS256")
@@ -155,6 +167,16 @@ REST_FRAMEWORK = {
     ),
 }
 
+PROFILE_TABLE_NAME = get_env("SUPABASE_PROFILE_TABLE", "profiles")
+PROFILE_SCHEMA_NAME = get_env("SUPABASE_PROFILE_SCHEMA", "public")
+PROFILE_PROTECTED_COLUMNS = {
+    "id",
+    "email",
+    "role",
+    "created_at",
+    "updated_at",
+}
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "Picsal API",
     "DESCRIPTION": "Core and user API for Picsal using Supabase and Cloudflare R2.",
@@ -164,4 +186,15 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "REDOC_DIST": "SIDECAR",
     "COMPONENT_SPLIT_REQUEST": True,
+    "SECURITY": [{"BearerAuth": []}],
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Paste a Supabase access token as: Bearer <token>",
+            }
+        }
+    },
 }

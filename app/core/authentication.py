@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass, field
+from functools import lru_cache
 
 import jwt
 from django.conf import settings
-from django.utils import timezone
 from rest_framework import authentication, exceptions
-
-from core.models import UserProfile
+from urllib.parse import urljoin
 
 
 def extract_display_name(claims: dict) -> str:
@@ -27,7 +27,28 @@ def extract_role(claims: dict) -> str:
     """Resolve the Picsal role from JWT claims."""
     app_metadata = claims.get("app_metadata") or {}
     role = app_metadata.get("picsal_role") or app_metadata.get("role")
-    return UserProfile.normalize_role(role)
+    if role in {"admin", "superuser"}:
+        return role
+    return "user"
+
+
+@dataclass
+class SupabaseUser:
+    """Authenticated user object built directly from Supabase JWT claims."""
+
+    id: uuid.UUID
+    email: str
+    role: str = "user"
+    display_name: str = ""
+    claims: dict = field(default_factory=dict)
+
+    @property
+    def is_authenticated(self) -> bool:
+        return True
+
+    @property
+    def is_anonymous(self) -> bool:
+        return False
 
 
 class SupabaseJWTAuthentication(authentication.BaseAuthentication):
@@ -51,24 +72,64 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
 
     def decode_token(self, token: str) -> dict:
         """Decode a Supabase JWT."""
-        if not settings.SUPABASE_JWT_SECRET:
-            raise exceptions.AuthenticationFailed("SUPABASE_JWT_SECRET is not configured.")
-
-        options = {"verify_aud": bool(settings.SUPABASE_JWT_AUDIENCE)}
-
         try:
+            return self._decode_with_jwks_or_secret(token)
+        except jwt.InvalidTokenError as exc:
+            raise exceptions.AuthenticationFailed(f"Invalid Supabase access token: {exc}") from exc
+
+    def _decode_with_jwks_or_secret(self, token: str) -> dict:
+        """Decode a Supabase JWT with JWKS first, then legacy secret fallback."""
+        headers = jwt.get_unverified_header(token)
+        algorithm = headers.get("alg", settings.SUPABASE_JWT_ALGORITHM)
+        options = {"verify_aud": bool(settings.SUPABASE_JWT_AUDIENCE)}
+        issuer = self.get_expected_issuer()
+
+        if settings.SUPABASE_JWKS_URL:
+            signing_key = self.get_signing_key(token)
+            return jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=[algorithm],
+                audience=settings.SUPABASE_JWT_AUDIENCE or None,
+                issuer=issuer,
+                options=options,
+            )
+
+        if settings.SUPABASE_JWT_SECRET:
             return jwt.decode(
                 token,
                 settings.SUPABASE_JWT_SECRET,
                 algorithms=[settings.SUPABASE_JWT_ALGORITHM],
                 audience=settings.SUPABASE_JWT_AUDIENCE or None,
+                issuer=issuer,
                 options=options,
             )
-        except jwt.InvalidTokenError as exc:
-            raise exceptions.AuthenticationFailed("Invalid Supabase access token.") from exc
 
-    def sync_profile(self, claims: dict) -> UserProfile:
-        """Create or update the local profile row from token claims."""
+        raise exceptions.AuthenticationFailed(
+            "Neither SUPABASE_JWKS_URL nor SUPABASE_JWT_SECRET is configured."
+        )
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _get_jwks_client():
+        """Cache the JWKS client to avoid fetching keys on every request."""
+        return jwt.PyJWKClient(settings.SUPABASE_JWKS_URL)
+
+    @staticmethod
+    def get_expected_issuer() -> str | None:
+        """Return the expected issuer for Supabase tokens."""
+        if settings.SUPABASE_JWT_ISSUER:
+            return settings.SUPABASE_JWT_ISSUER.rstrip("/")
+        if settings.SUPABASE_URL:
+            return urljoin(f"{settings.SUPABASE_URL.rstrip('/')}/", "auth/v1").rstrip("/")
+        return None
+
+    def get_signing_key(self, token: str):
+        """Resolve the signing key for a JWT from Supabase JWKS."""
+        return self._get_jwks_client().get_signing_key_from_jwt(token)
+
+    def sync_profile(self, claims: dict) -> SupabaseUser:
+        """Build the authenticated request user from token claims."""
         user_id = claims.get("sub")
         email = claims.get("email")
         if not user_id or not email:
@@ -79,40 +140,10 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         except ValueError as exc:
             raise exceptions.AuthenticationFailed("Supabase token contains an invalid user id.") from exc
 
-        profile, created = UserProfile.objects.get_or_create(
+        return SupabaseUser(
             id=profile_id,
-            defaults={
-                "email": email,
-                "display_name": extract_display_name(claims),
-                "role": extract_role(claims),
-                "metadata": claims.get("user_metadata") or {},
-            },
+            email=email,
+            role=extract_role(claims),
+            display_name=extract_display_name(claims),
+            claims=claims,
         )
-
-        updates = []
-        display_name = extract_display_name(claims)
-        role = extract_role(claims)
-        metadata = claims.get("user_metadata") or {}
-
-        if profile.email != email:
-            profile.email = email
-            updates.append("email")
-        if display_name and profile.display_name != display_name:
-            profile.display_name = display_name
-            updates.append("display_name")
-        if profile.role != role:
-            profile.role = role
-            updates.append("role")
-        if metadata and profile.metadata != metadata:
-            profile.metadata = metadata
-            updates.append("metadata")
-
-        profile.last_login_at = timezone.now()
-        updates.append("last_login_at")
-
-        if created:
-            profile.save()
-        else:
-            profile.save(update_fields=updates)
-
-        return profile

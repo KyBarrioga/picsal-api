@@ -1,12 +1,5 @@
-from django.contrib import admin
+"""Admin registrations are intentionally empty.
 
-from core.models import UserProfile
-
-
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ("email", "display_name", "role", "updated_at")
-    search_fields = ("email", "display_name")
-    list_filter = ("role",)
-    readonly_fields = ("id", "created_at", "updated_at", "last_login_at")
-
+This project does not manage application tables through Django admin because
+Supabase owns the schema and records.
+"""

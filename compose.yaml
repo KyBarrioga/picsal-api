@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
       args:
         - DEV=true
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
@@ -14,40 +16,12 @@ services:
       - dev-static-data:/vol/web
     command: >
       sh -c "python manage.py wait_for_db &&
-             python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     environment:
       DJANGO_SECRET_KEY: dev-secret-key
       DJANGO_DEBUG: "True"
       DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
       DJANGO_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: picsal_api
-      DB_USER: picsal_user
-      DB_PASSWORD: change_me
-      SUPABASE_JWT_SECRET: dev-supabase-jwt-secret
-      SUPABASE_JWT_AUDIENCE: authenticated
-      SUPABASE_JWT_ALGORITHM: HS256
-      CLOUDFLARE_R2_ACCOUNT_ID: local-dev
-      CLOUDFLARE_R2_ACCESS_KEY_ID: local-dev
-      CLOUDFLARE_R2_SECRET_ACCESS_KEY: local-dev
-      CLOUDFLARE_R2_BUCKET: picsal-assets
-      CLOUDFLARE_R2_PUBLIC_BASE_URL: http://localhost:8000/mock-r2
-    depends_on:
-      - db
-
-  db:
-    image: postgres:16-alpine
-    ports:
-      - "5433:5432"
-    volumes:
-      - dev-db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: picsal_api
-      POSTGRES_USER: picsal_user
-      POSTGRES_PASSWORD: change_me
-
+      DATABASE_URL: ${DATABASE_URL}
 volumes:
-  dev-db-data:
   dev-static-data:

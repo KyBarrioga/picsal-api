@@ -1,30 +1,18 @@
 """Serializers for user endpoints."""
 from rest_framework import serializers
 
-from core.models import UserProfile
+
+class SupabaseAuthUserSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    email = serializers.EmailField()
+    role = serializers.CharField()
+    display_name = serializers.CharField(allow_blank=True, required=False)
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = [
-            "id",
-            "email",
-            "display_name",
-            "avatar_path",
-            "role",
-            "metadata",
-            "last_login_at",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = [
-            "id",
-            "email",
-            "role",
-            "metadata",
-            "last_login_at",
-            "created_at",
-            "updated_at",
-        ]
+class SupabaseProfileEnvelopeSerializer(serializers.Serializer):
+    auth_user = SupabaseAuthUserSerializer()
+    profile = serializers.JSONField(allow_null=True)
 
+
+class SupabaseProfileUpdateSerializer(serializers.Serializer):
+    profile = serializers.DictField(required=False)

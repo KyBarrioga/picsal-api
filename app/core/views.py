@@ -3,8 +3,8 @@ from rest_framework import permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import UserProfile
-from core.serializers import StoragePresignRequestSerializer
+from core.authentication import SupabaseUser
+from core.serializers import StoragePresignRequestSerializer, build_r2_key
 from core.services import R2StorageService
 
 
@@ -32,8 +32,8 @@ class StoragePresignView(APIView):
         serializer = StoragePresignRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user: UserProfile = request.user
-        object_key = UserProfile.build_r2_key(
+        user: SupabaseUser = request.user
+        object_key = build_r2_key(
             user_id=user.id,
             filename=serializer.validated_data["file_name"],
             folder=serializer.validated_data["folder"],
