@@ -29,7 +29,8 @@ pip install -r requirements.development.txt
 3. Copy `.env.example` to `.env` and fill in your Supabase and Cloudflare R2 credentials.
 4. Point `DATABASE_URL` at your existing Supabase Postgres database.
    For Docker and other persistent backends without reliable IPv6, prefer the Supabase session pooler string with `sslmode=require`.
-5. Start the API:
+5. If you need to override where Django writes collected static files, set `DJANGO_STATIC_ROOT`.
+6. Start the API:
 
 ```bash
 python app/manage.py runserver
@@ -52,6 +53,7 @@ Notes:
 
 - Docker now expects `DATABASE_URL` to point at your real Supabase database
 - this repo no longer owns the database schema or migrations
+- production containers default `DJANGO_STATIC_ROOT` to `/vol/web/static`, which matches the writable volume created in the Docker image
 
 ## API Endpoints
 

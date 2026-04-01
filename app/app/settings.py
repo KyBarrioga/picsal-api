@@ -137,7 +137,12 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = Path(
+    get_env(
+        "DJANGO_STATIC_ROOT",
+        "/vol/web/static" if Path("/vol/web").exists() else str(BASE_DIR / "staticfiles"),
+    )
+)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = get_list("DJANGO_CORS_ALLOWED_ORIGINS", [])
