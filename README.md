@@ -54,6 +54,7 @@ Notes:
 - Docker now expects `DATABASE_URL` to point at your real Supabase database
 - this repo no longer owns the database schema or migrations
 - production containers default `DJANGO_STATIC_ROOT` to `/vol/web/static`, which matches the writable volume created in the Docker image
+- production binds `uWSGI` to `0.0.0.0:$PORT`, matching the port Render injects at runtime
 - production `uWSGI` defaults `UWSGI_BUFFER_SIZE` to `65535` so larger proxy/auth headers do not get rejected by the 4 KB default
 
 ## API Endpoints
