@@ -11,7 +11,9 @@ from core.views import StoragePresignView
 class StoragePresignViewTests(SimpleTestCase):
     def setUp(self):
         self.factory = APIRequestFactory()
-        self.original_storage_service_class = StoragePresignView.storage_service_class
+        self.original_storage_service_class = (
+            StoragePresignView.storage_service_class
+        )
         self.user = SupabaseUser(
             id=uuid.UUID("11111111-1111-1111-1111-111111111111"),
             email="person@example.com",
@@ -20,10 +22,13 @@ class StoragePresignViewTests(SimpleTestCase):
         )
 
     def tearDown(self):
-        StoragePresignView.storage_service_class = self.original_storage_service_class
+        StoragePresignView.storage_service_class = (
+            self.original_storage_service_class
+        )
 
     def test_post_accepts_multipart_image_payload(self):
-        image = SimpleUploadedFile("avatar.png", b"fake-image-bytes", content_type="image/png")
+        image = SimpleUploadedFile(
+            "avatar.png", b"fake-image-bytes", content_type="image/png")
         request = self.factory.post(
             "/api/core/storage/presign/",
             {
@@ -55,7 +60,8 @@ class StoragePresignViewTests(SimpleTestCase):
         self.assertEqual(captured["content_type"], "image/png")
 
     def test_post_rejects_non_image_upload(self):
-        document = SimpleUploadedFile("notes.txt", b"hello", content_type="text/plain")
+        document = SimpleUploadedFile(
+            "notes.txt", b"hello", content_type="text/plain")
         request = self.factory.post(
             "/api/core/storage/presign/",
             {

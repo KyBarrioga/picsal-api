@@ -18,9 +18,11 @@ class SupabaseAuthService:
 
     def _validate_settings(self) -> None:
         if not self.base_url:
-            raise exceptions.ValidationError({"detail": "SUPABASE_URL is not configured."})
+            raise exceptions.ValidationError(
+                {"detail": "SUPABASE_URL is not configured."})
         if not self.anon_key:
-            raise exceptions.ValidationError({"detail": "SUPABASE_ANON_KEY is not configured."})
+            raise exceptions.ValidationError(
+                {"detail": "SUPABASE_ANON_KEY is not configured."})
 
     def login(self, email: str, password: str) -> dict:
         """Exchange credentials for a Supabase session."""
@@ -57,5 +59,5 @@ class SupabaseAuthService:
             )
             raise exceptions.AuthenticationFailed(message) from exc
         except URLError as exc:
-            raise exceptions.APIException("Unable to reach Supabase Auth.") from exc
-
+            raise exceptions.APIException(
+                "Unable to reach Supabase Auth.") from exc

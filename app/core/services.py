@@ -17,7 +17,9 @@ class R2StorageService:
     def __init__(self) -> None:
         self.bucket = settings.CLOUDFLARE_R2_BUCKET
         self.endpoint_url = (
-            f"https://{settings.CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+            "https://"
+            f"{settings.CLOUDFLARE_R2_ACCOUNT_ID}"
+            ".r2.cloudflarestorage.com"
             if settings.CLOUDFLARE_R2_ACCOUNT_ID
             else ""
         )
@@ -32,7 +34,8 @@ class R2StorageService:
                 settings.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
             ]
         ):
-            raise ValueError("Cloudflare R2 credentials are not fully configured.")
+            raise ValueError(
+                "Cloudflare R2 credentials are not fully configured.")
 
         return boto3.client(
             "s3",
@@ -42,8 +45,10 @@ class R2StorageService:
             region_name="auto",
         )
 
-    def generate_upload_url(self, object_key: str, content_type: str, expires_in: int = 900) -> str:
-        """Generate a presigned PUT URL for direct browser uploads."""
+    def generate_upload_url(
+                self, object_key: str, content_type: str, expires_in: int = 900
+            ) -> str:
+        """Generate a presigned PUT URL for browser uploads."""
         client = self.client()
         return client.generate_presigned_url(
             "put_object",
@@ -58,7 +63,10 @@ class R2StorageService:
     def build_public_url(self, object_key: str) -> str:
         """Build a public-facing URL for a stored object."""
         if settings.CLOUDFLARE_R2_PUBLIC_BASE_URL:
-            return f"{settings.CLOUDFLARE_R2_PUBLIC_BASE_URL.rstrip('/')}/{quote(object_key)}"
+            return (
+                f"{settings.CLOUDFLARE_R2_PUBLIC_BASE_URL
+                    .rstrip('/')}/{quote(object_key)}"
+            )
         return f"{self.endpoint_url}/{self.bucket}/{quote(object_key)}"
 
 
@@ -107,8 +115,12 @@ class SupabaseProfileService:
 
     def update_profile(self, user: SupabaseUser, data: dict) -> dict | None:
         """Update editable profile fields and return the updated row."""
-        allowed_columns = self.get_columns() - settings.PROFILE_PROTECTED_COLUMNS
-        updates = {key: value for key, value in data.items() if key in allowed_columns}
+        allowed_columns = (
+                self.get_columns()
+                - settings.PROFILE_PROTECTED_COLUMNS
+            )
+        updates = {key: value for key,
+                   value in data.items() if key in allowed_columns}
         if not updates:
             return self.get_profile(user)
 

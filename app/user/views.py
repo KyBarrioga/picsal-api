@@ -13,7 +13,7 @@ from user.serializers import (
 
 
 class ManageUserView(APIView):
-    """Retrieve or update the authenticated Supabase user's Supabase profile."""
+    """Retrieve or update the authenticated Supabase user."""
 
     permission_classes = [permissions.IsAuthenticated]
     profile_service = SupabaseProfileService()
@@ -39,4 +39,7 @@ class ManageUserView(APIView):
             "auth_user": SupabaseAuthUserSerializer(user).data,
             "profile": profile,
         }
-        return Response(SupabaseProfileEnvelopeSerializer(payload).data, status=status.HTTP_200_OK)
+        return Response(
+            SupabaseProfileEnvelopeSerializer(payload).data,
+            status=status.HTTP_200_OK
+        )

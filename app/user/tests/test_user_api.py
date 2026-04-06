@@ -22,11 +22,13 @@ class ManageUserViewTests(SimpleTestCase):
         view.profile_service = type(
             "ProfileServiceStub",
             (),
-            {"get_profile": lambda self, request_user: {"id": str(request_user.id), "username": "person"}},
+            {"get_profile": lambda self, request_user: {
+                "id": str(request_user.id), "username": "person"}},
         )()
 
         response = view.get(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["auth_user"]["email"], "person@example.com")
+        self.assertEqual(response.data["auth_user"]
+                         ["email"], "person@example.com")
         self.assertEqual(response.data["profile"]["username"], "person")

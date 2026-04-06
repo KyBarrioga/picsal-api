@@ -11,7 +11,8 @@ class StoragePresignRequestSerializer(serializers.Serializer):
         image = attrs.get("image")
         content_type = getattr(image, "content_type", "")
         if not content_type.startswith("image/"):
-            raise serializers.ValidationError({"image": "Only image uploads are supported."})
+            raise serializers.ValidationError(
+                {"image": "Only image uploads are supported."})
 
         attrs["file_name"] = image.name
         attrs["content_type"] = content_type
@@ -24,7 +25,9 @@ class StoragePresignResponseSerializer(serializers.Serializer):
     public_url = serializers.URLField()
 
 
-def build_r2_key(user_id: uuid.UUID, filename: str, folder: str = "users") -> str:
+def build_r2_key(
+            user_id: uuid.UUID, filename: str, folder: str = "users"
+        ) -> str:
     """Build a namespaced R2 object key for a user-owned file."""
     extension = ""
     if "." in filename:

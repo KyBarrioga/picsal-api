@@ -57,7 +57,10 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
     keyword = "Bearer"
 
     def authenticate(self, request):
-        header = authentication.get_authorization_header(request).decode("utf-8")
+        header = (
+            authentication.get_authorization_header(request)
+            .decode("utf-8")
+        )
         if not header:
             return None
 
@@ -75,10 +78,11 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         try:
             return self._decode_with_jwks_or_secret(token)
         except jwt.InvalidTokenError as exc:
-            raise exceptions.AuthenticationFailed(f"Invalid Supabase access token: {exc}") from exc
+            raise exceptions.AuthenticationFailed(
+                f"Invalid Supabase access token: {exc}") from exc
 
     def _decode_with_jwks_or_secret(self, token: str) -> dict:
-        """Decode a Supabase JWT with JWKS first, then legacy secret fallback."""
+        """Decode a Supabase JWT with JWKS first, then fallback."""
         headers = jwt.get_unverified_header(token)
         algorithm = headers.get("alg", settings.SUPABASE_JWT_ALGORITHM)
         options = {"verify_aud": bool(settings.SUPABASE_JWT_AUDIENCE)}
@@ -121,7 +125,9 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         if settings.SUPABASE_JWT_ISSUER:
             return settings.SUPABASE_JWT_ISSUER.rstrip("/")
         if settings.SUPABASE_URL:
-            return urljoin(f"{settings.SUPABASE_URL.rstrip('/')}/", "auth/v1").rstrip("/")
+            return urljoin(
+                f"{settings.SUPABASE_URL.rstrip('/')}/", "auth/v1"
+            ).rstrip("/")
         return None
 
     def get_signing_key(self, token: str):
@@ -133,12 +139,14 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         user_id = claims.get("sub")
         email = claims.get("email")
         if not user_id or not email:
-            raise exceptions.AuthenticationFailed("Supabase token missing user identity claims.")
+            raise exceptions.AuthenticationFailed(
+                "Supabase token missing user identity claims.")
 
         try:
             profile_id = uuid.UUID(user_id)
         except ValueError as exc:
-            raise exceptions.AuthenticationFailed("Supabase token contains an invalid user id.") from exc
+            raise exceptions.AuthenticationFailed(
+                "Supabase token contains an invalid user id.") from exc
 
         return SupabaseUser(
             id=profile_id,

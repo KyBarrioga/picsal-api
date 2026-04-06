@@ -38,5 +38,5 @@ class LoginView(APIView):
         )
         response_serializer = SessionSerializer(data=session)
         response_serializer.is_valid(raise_exception=True)
-        return Response(response_serializer.validated_data, status=status.HTTP_200_OK)
-
+        return Response(response_serializer.validated_data,
+                        status=status.HTTP_200_OK)

@@ -17,10 +17,10 @@ class Command(BaseCommand):
             try:
                 database.cursor()
             except OperationalError:
-                self.stdout.write("Database unavailable, retrying in 1 second...")
+                self.stdout.write(
+                    "Database unavailable, retrying in 1 second...")
                 time.sleep(1)
             else:
                 break
 
         self.stdout.write(self.style.SUCCESS("Database available."))
-

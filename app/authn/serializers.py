@@ -4,7 +4,10 @@ from rest_framework import serializers
 
 class LoginRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(trim_whitespace=False, style={"input_type": "password"})
+    password = serializers.CharField(
+                                     trim_whitespace=False,
+                                     style={"input_type": "password"}
+                                     )
 
 
 class AuthUserSerializer(serializers.Serializer):
@@ -22,4 +25,3 @@ class SessionSerializer(serializers.Serializer):
     expires_at = serializers.IntegerField(required=False)
     token_type = serializers.CharField()
     user = AuthUserSerializer()
-

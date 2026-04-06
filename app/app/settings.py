@@ -125,10 +125,22 @@ ASGI_APPLICATION = "app.asgi.application"
 DATABASES = {"default": build_database_config()}
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation."
+        "NumericPasswordValidator",
+    },
 ]
 
 LANGUAGE_CODE = "en-us"
@@ -140,7 +152,8 @@ STATIC_URL = "/static/"
 STATIC_ROOT = Path(
     get_env(
         "DJANGO_STATIC_ROOT",
-        "/vol/web/static" if Path("/vol/web").exists() else str(BASE_DIR / "staticfiles"),
+        "/vol/web/static" if Path("/vol/web").exists() else str(
+            BASE_DIR / "staticfiles"),
     )
 )
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -157,7 +170,8 @@ SUPABASE_JWT_ALGORITHM = get_env("SUPABASE_JWT_ALGORITHM", "HS256")
 
 CLOUDFLARE_R2_ACCOUNT_ID = get_env("CLOUDFLARE_R2_ACCOUNT_ID", "")
 CLOUDFLARE_R2_ACCESS_KEY_ID = get_env("CLOUDFLARE_R2_ACCESS_KEY_ID", "")
-CLOUDFLARE_R2_SECRET_ACCESS_KEY = get_env("CLOUDFLARE_R2_SECRET_ACCESS_KEY", "")
+CLOUDFLARE_R2_SECRET_ACCESS_KEY = get_env(
+    "CLOUDFLARE_R2_SECRET_ACCESS_KEY", "")
 CLOUDFLARE_R2_BUCKET = get_env("CLOUDFLARE_R2_BUCKET", "")
 CLOUDFLARE_R2_PUBLIC_BASE_URL = get_env("CLOUDFLARE_R2_PUBLIC_BASE_URL", "")
 
@@ -184,7 +198,8 @@ PROFILE_PROTECTED_COLUMNS = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Picsal API",
-    "DESCRIPTION": "Core and user API for Picsal using Supabase and Cloudflare R2.",
+    "DESCRIPTION": "Core and user API for Picsal "
+                   "using Supabase and Cloudflare R2.",
     "VERSION": "0.1.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_DIST": "SIDECAR",
@@ -198,7 +213,8 @@ SPECTACULAR_SETTINGS = {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT",
-                "description": "Paste a Supabase access token as: Bearer <token>",
+                "description": "Paste a Supabase access token as: "
+                               "Bearer <token>",
             }
         }
     },
