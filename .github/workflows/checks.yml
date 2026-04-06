@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Create env file
-        run: cp .env.example .env
+        run: touch .env
       - name: Test
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
