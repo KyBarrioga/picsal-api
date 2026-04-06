@@ -12,8 +12,8 @@ class LoginViewTests(SimpleTestCase):
             format="json",
         )
 
-        view = LoginView()
-        view.service = type(
+        original_service = LoginView.service
+        LoginView.service = type(
             "AuthServiceStub",
             (),
             {
@@ -32,8 +32,10 @@ class LoginViewTests(SimpleTestCase):
                 }
             },
         )()
+        view = LoginView.as_view()
 
-        response = view.post(request)
+        response = view(request)
+        LoginView.service = original_service
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["user"]["email"], "user@example.com")

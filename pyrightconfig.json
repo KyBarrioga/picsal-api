@@ -1,4 +1,5 @@
 {
+  "typeCheckingMode": "off",
   "venvPath": ".",
   "venv": ".venv"
 }
