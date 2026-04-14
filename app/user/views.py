@@ -23,6 +23,7 @@ class ManageUserView(APIView):
         payload = {
             "auth_user": SupabaseAuthUserSerializer(user).data,
             "profile": self.profile_service.get_profile(user),
+            "media": self.profile_service.get_media_for_user(user),
         }
         return Response(SupabaseProfileEnvelopeSerializer(payload).data)
 
@@ -38,6 +39,7 @@ class ManageUserView(APIView):
         payload = {
             "auth_user": SupabaseAuthUserSerializer(user).data,
             "profile": profile,
+            "media": self.profile_service.get_media_for_user(user),
         }
         return Response(
             SupabaseProfileEnvelopeSerializer(payload).data,

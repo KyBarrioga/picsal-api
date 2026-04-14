@@ -18,4 +18,5 @@ urlpatterns = [
     path("api/auth/", include("authn.urls")),
     path("api/", include("core.urls")),
     path("api/user/", include("user.urls")),
+    path("api/uploads/", include("uploads.urls")),
 ]

@@ -138,3 +138,22 @@ class SupabaseProfileService:
                 values,
             )
             return self._fetchone_as_dict(cursor)
+
+    def get_media_for_user(self, user: SupabaseUser) -> list[dict]:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                select *
+                from public.media
+                where user_id = %s
+                order by created_at desc
+                """,
+                [str(user.id)],
+            )
+            rows = cursor.fetchall()
+            if not rows:
+                return []
+
+            columns = [column[0] for column in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+
