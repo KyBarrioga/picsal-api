@@ -23,7 +23,10 @@ class ManageUserViewTests(SimpleTestCase):
             "ProfileServiceStub",
             (),
             {"get_profile": lambda self, request_user: {
-                "id": str(request_user.id), "username": "person"}},
+                "id": str(request_user.id), "username": "person"},
+             "get_media_for_user": lambda self, request_user: [
+                {"id": "media-1", "user_id": str(request_user.id)}
+            ]},
         )()
 
         response = view.get(request)
@@ -32,3 +35,4 @@ class ManageUserViewTests(SimpleTestCase):
         self.assertEqual(response.data["auth_user"]
                          ["email"], "person@example.com")
         self.assertEqual(response.data["profile"]["username"], "person")
+        self.assertEqual(len(response.data["media"]),1)
