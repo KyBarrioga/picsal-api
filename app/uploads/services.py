@@ -2,7 +2,8 @@
 from __future__ import annotations
 from django.db import connection
 
-from core.authentication import SupabaseUser
+# from core.authentication import SupabaseUser
+
 
 class UploadMediaServices:
     """Media services when media is uploaded."""

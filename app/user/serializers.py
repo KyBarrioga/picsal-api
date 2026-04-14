@@ -12,7 +12,8 @@ class SupabaseAuthUserSerializer(serializers.Serializer):
 class SupabaseProfileEnvelopeSerializer(serializers.Serializer):
     auth_user = SupabaseAuthUserSerializer()
     profile = serializers.JSONField(allow_null=True)
-    media = serializers.ListField(child=serializers.JSONField(), required=False)
+    media = serializers.ListField(
+        child=serializers.JSONField(), required=False)
 
 
 class SupabaseProfileUpdateSerializer(serializers.Serializer):

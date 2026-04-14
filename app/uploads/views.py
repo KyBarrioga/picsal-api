@@ -20,12 +20,18 @@ class MediaCreateView(APIView):
                 "Create media",
                 value={
                     "object_key": "media/user-123/file.jpg",
-                    "public_url": "https://cdn.example.com/media/user-123/file.jpg",
+                    "public_url": (
+                        "https://cdn.example.com"
+                        "/media/user-123/file.jpg"
+                    ),
                     "kind": "image",
                     "title": "Hero Image",
                     "description": "Homepage hero image",
                     "preview_object_key": "media/user-123/file-preview.jpg",
-                    "preview_public_url": "https://cdn.example.com/media/user-123/file-preview.jpg",
+                    "preview_public_url": (
+                        "https://cdn.example.com"
+                        "/media/user-123/file-preview.jpg"
+                    ),
                 },
                 request_only=True,
             )
@@ -47,4 +53,7 @@ class MediaCreateView(APIView):
         )
 
         response_serializer = MediaResponseSerializer(media)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED
+            )

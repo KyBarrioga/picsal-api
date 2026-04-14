@@ -35,4 +35,4 @@ class ManageUserViewTests(SimpleTestCase):
         self.assertEqual(response.data["auth_user"]
                          ["email"], "person@example.com")
         self.assertEqual(response.data["profile"]["username"], "person")
-        self.assertEqual(len(response.data["media"]),1)
+        self.assertEqual(len(response.data["media"]), 1)

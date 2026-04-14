@@ -46,8 +46,8 @@ class R2StorageService:
         )
 
     def generate_upload_url(
-                self, object_key: str, content_type: str, expires_in: int = 900
-            ) -> str:
+        self, object_key: str, content_type: str, expires_in: int = 900
+    ) -> str:
         """Generate a presigned PUT URL for browser uploads."""
         client = self.client()
         return client.generate_presigned_url(
@@ -116,9 +116,9 @@ class SupabaseProfileService:
     def update_profile(self, user: SupabaseUser, data: dict) -> dict | None:
         """Update editable profile fields and return the updated row."""
         allowed_columns = (
-                self.get_columns()
-                - settings.PROFILE_PROTECTED_COLUMNS
-            )
+            self.get_columns()
+            - settings.PROFILE_PROTECTED_COLUMNS
+        )
         updates = {key: value for key,
                    value in data.items() if key in allowed_columns}
         if not updates:
@@ -156,4 +156,3 @@ class SupabaseProfileService:
 
             columns = [column[0] for column in cursor.description]
             return [dict(zip(columns, row)) for row in rows]
-
