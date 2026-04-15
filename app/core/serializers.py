@@ -26,10 +26,11 @@ class StoragePresignResponseSerializer(serializers.Serializer):
 
 
 def build_r2_key(
-            user_id: uuid.UUID, filename: str, folder: str = "actual"
-        ) -> str:
+    user_id: uuid.UUID, filename: str, folder: str = "actual"
+) -> str:
     """Build a namespaced R2 object key for a user-owned file."""
     extension = ""
     if "." in filename:
         extension = f".{filename.rsplit('.', 1)[-1].lower()}"
-    return f"users/{folder}/{user_id}/{uuid.uuid4()}{extension}" # f"{folder}/{user_id}/{uuid.uuid4()}{extension}"
+    # f"{folder}/{user_id}/{uuid.uuid4()}{extension}"
+    return f"users/{folder}/{user_id}/{uuid.uuid4()}{extension}"
