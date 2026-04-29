@@ -10,6 +10,11 @@ class LoginRequestSerializer(serializers.Serializer):
                                      )
 
 
+class SignupRequestSerializer(LoginRequestSerializer):
+    email_redirect_to = serializers.URLField(required=False)
+    data = serializers.DictField(required=False)
+
+
 class AuthUserSerializer(serializers.Serializer):
     id = serializers.CharField()
     email = serializers.EmailField(allow_blank=True, required=False)
@@ -25,3 +30,11 @@ class SessionSerializer(serializers.Serializer):
     expires_at = serializers.IntegerField(required=False)
     token_type = serializers.CharField()
     user = AuthUserSerializer()
+
+
+class AuthResponseSerializer(serializers.Serializer):
+    user = AuthUserSerializer()
+    expires_in = serializers.IntegerField(required=False)
+    expires_at = serializers.IntegerField(required=False)
+    token_type = serializers.CharField(required=False)
+    session_created = serializers.BooleanField(default=False)

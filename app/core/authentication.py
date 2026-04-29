@@ -57,21 +57,31 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
     keyword = "Bearer"
 
     def authenticate(self, request):
+        token = self.get_bearer_token(request) or self.get_cookie_token(
+            request)
+        if not token:
+            return None
+
+        claims = self.decode_token(token)
+        user = self.sync_profile(claims)
+        return (user, claims)
+
+    def get_bearer_token(self, request) -> str:
         header = (
             authentication.get_authorization_header(request)
             .decode("utf-8")
         )
         if not header:
-            return None
+            return ""
 
         parts = header.split()
         if len(parts) != 2 or parts[0] != self.keyword:
-            return None
+            return ""
 
-        token = parts[1]
-        claims = self.decode_token(token)
-        user = self.sync_profile(claims)
-        return (user, claims)
+        return parts[1]
+
+    def get_cookie_token(self, request) -> str:
+        return request.COOKIES.get(settings.AUTH_ACCESS_COOKIE_NAME, "")
 
     def decode_token(self, token: str) -> dict:
         """Decode a Supabase JWT."""
