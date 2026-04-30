@@ -28,6 +28,8 @@ def _session_from_payload(payload: dict) -> dict:
     """Normalize Supabase Auth responses into one session-shaped dict."""
     session = payload.get("session") or payload
     user = payload.get("user") or session.get("user")
+    if not user and payload.get("id") and payload.get("email"):
+        user = payload
     if user:
         session["user"] = user
     return session

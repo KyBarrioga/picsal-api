@@ -22,6 +22,11 @@ class SignupWithoutSessionServiceStub:
         }
 
 
+class SignupBareUserServiceStub:
+    def signup(self, email, password, **kwargs):
+        return session_payload(email)["user"]
+
+
 class LogoutServiceStub:
     def __init__(self):
         self.logged_out_tokens = []
@@ -123,6 +128,26 @@ class AuthViewTests(SimpleTestCase):
 
         original_service = SignupView.service
         SignupView.service = SignupWithoutSessionServiceStub()
+
+        try:
+            response = SignupView.as_view()(request)
+        finally:
+            SignupView.service = original_service
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["user"]["email"], "new@example.com")
+        self.assertFalse(response.data["session_created"])
+        self.assertNotIn(settings.AUTH_ACCESS_COOKIE_NAME, response.cookies)
+
+    def test_signup_accepts_bare_supabase_user_response(self):
+        request = APIRequestFactory().post(
+            "/api/auth/signup/",
+            {"email": "new@example.com", "password": "secret123"},
+            format="json",
+        )
+
+        original_service = SignupView.service
+        SignupView.service = SignupBareUserServiceStub()
 
         try:
             response = SignupView.as_view()(request)
