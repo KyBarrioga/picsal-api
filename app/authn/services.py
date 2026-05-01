@@ -121,3 +121,12 @@ class SupabaseAuthService:
                 "refresh_token": refresh_token,
             },
         )
+
+    def update_user_metadata(self, access_token: str, data: dict) -> dict:
+        """Update metadata for the currently authenticated Supabase user."""
+        return self._request(
+            "user",
+            method="PUT",
+            payload={"data": data},
+            bearer_token=access_token,
+        )

@@ -1,8 +1,15 @@
 from django.conf import settings
 from django.test import SimpleTestCase
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIRequestFactory, force_authenticate
 
-from authn.views import LoginView, LogoutView, RefreshView, SignupView
+from authn.views import (
+    LoginView,
+    LogoutView,
+    RefreshView,
+    SetupUserView,
+    SignupView,
+)
+from core.authentication import SupabaseUser
 
 
 class LoginServiceStub:
@@ -45,6 +52,21 @@ class RefreshServiceStub:
         payload["access_token"] = "new-access-token"
         payload["refresh_token"] = "new-refresh-token"
         return payload
+
+
+class SetupUserServiceStub:
+    def __init__(self):
+        self.calls = []
+
+    def update_user_metadata(self, access_token, data):
+        self.calls.append((access_token, data))
+        return {
+            "id": "11111111-1111-1111-1111-111111111111",
+            "email": "user@example.com",
+            "role": "authenticated",
+            "aud": "authenticated",
+            "user_metadata": data,
+        }
 
 
 def session_payload(email="user@example.com"):
@@ -217,3 +239,34 @@ class AuthViewTests(SimpleTestCase):
         response = RefreshView.as_view()(request)
 
         self.assertEqual(response.status_code, 403)
+
+    def test_setup_updates_supabase_display_name(self):
+        request = APIRequestFactory().patch(
+            "/api/auth/setup/",
+            {"display_name": "Kymbiee"},
+            format="json",
+            HTTP_AUTHORIZATION="Bearer access-token",
+        )
+        force_authenticate(
+            request,
+            user=SupabaseUser(
+                id="11111111-1111-1111-1111-111111111111",
+                email="user@example.com",
+            ),
+        )
+
+        original_service = SetupUserView.service
+        service_stub = SetupUserServiceStub()
+        SetupUserView.service = service_stub
+
+        try:
+            response = SetupUserView.as_view()(request)
+        finally:
+            SetupUserView.service = original_service
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            service_stub.calls,
+            [("access-token", {"display_name": "Kymbiee"})],
+        )
+        self.assertEqual(response.data["user"]["display_name"], "Kymbiee")

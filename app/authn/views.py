@@ -6,11 +6,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authn.serializers import (
+    AuthUserResponseSerializer,
     AuthResponseSerializer,
     LoginRequestSerializer,
+    SetupUserRequestSerializer,
     SignupRequestSerializer,
 )
 from authn.services import SupabaseAuthService
+from core.authentication import extract_display_name
 
 
 def _cookie_options() -> dict:
@@ -47,6 +50,18 @@ def _auth_response_data(payload: dict) -> dict:
         if value is not None:
             response_data[key] = value
     return response_data
+
+
+def _auth_user_response_data(payload: dict) -> dict:
+    """Build a client-safe auth user payload."""
+    user = payload.get("user") or payload
+    if user:
+        user = {
+            **user,
+            "display_name": user.get("display_name")
+            or extract_display_name(user),
+        }
+    return {"user": user}
 
 
 def _set_auth_cookies(response: Response, payload: dict) -> None:
@@ -188,6 +203,42 @@ class SignupView(APIView):
         )
         _set_auth_cookies(response, session)
         return response
+
+
+class SetupUserView(APIView):
+    """Finalize the authenticated Supabase user's display name."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    service = SupabaseAuthService()
+
+    @extend_schema(
+        operation_id="auth_setup",
+        tags=["auth"],
+        request=SetupUserRequestSerializer,
+        responses={200: AuthUserResponseSerializer},
+    )
+    def patch(self, request):
+        serializer = SetupUserRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        access_token = _access_token_from_request(request)
+        if not access_token:
+            raise exceptions.AuthenticationFailed("Missing access token.")
+
+        updated_user = self.service.update_user_metadata(
+            access_token=access_token,
+            data={
+                "display_name": serializer.validated_data["display_name"],
+            },
+        )
+        response_serializer = AuthUserResponseSerializer(
+            data=_auth_user_response_data(updated_user),
+        )
+        response_serializer.is_valid(raise_exception=True)
+        return Response(
+            response_serializer.validated_data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class LogoutView(APIView):
