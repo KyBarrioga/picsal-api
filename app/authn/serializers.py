@@ -15,10 +15,6 @@ class SignupRequestSerializer(LoginRequestSerializer):
     data = serializers.DictField(required=False)
 
 
-class SetupUserRequestSerializer(serializers.Serializer):
-    display_name = serializers.CharField(max_length=150)
-
-
 class AuthUserSerializer(serializers.Serializer):
     id = serializers.CharField()
     email = serializers.EmailField(allow_blank=True, required=False)
@@ -26,10 +22,6 @@ class AuthUserSerializer(serializers.Serializer):
     role = serializers.CharField(allow_blank=True, required=False)
     aud = serializers.CharField(allow_blank=True, required=False)
     display_name = serializers.CharField(allow_blank=True, required=False)
-
-
-class AuthUserResponseSerializer(serializers.Serializer):
-    user = AuthUserSerializer()
 
 
 class SessionSerializer(serializers.Serializer):

@@ -18,3 +18,11 @@ class SupabaseProfileEnvelopeSerializer(serializers.Serializer):
 
 class SupabaseProfileUpdateSerializer(serializers.Serializer):
     profile = serializers.DictField(required=False)
+
+
+class UserSetupRequestSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+
+
+class UserSetupResponseSerializer(serializers.Serializer):
+    profile = serializers.JSONField(allow_null=True)
