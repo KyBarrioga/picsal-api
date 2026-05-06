@@ -50,6 +50,7 @@ class ManageUserView(APIView):
             status=status.HTTP_200_OK
         )
 
+
 class UserSetupView(APIView):
     """Finalize profile setup for the authenticated Supabase user."""
 
@@ -94,7 +95,9 @@ class UserSetupView(APIView):
                 return Response(
                     {
                         "username": [
-                            "Display name must be 1-30 characters, and may only contain _ or - after the first character."
+                            "Display name must be 1-30 characters, "
+                            "and may only contain _ "
+                            "or - after the first character."
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
