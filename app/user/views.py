@@ -94,7 +94,7 @@ class UserSetupView(APIView):
                 return Response(
                     {
                         "username": [
-                            "Display name must be lowercase, 1-30 characters, and may only contain _ or - after the first character."
+                            "Display name must be 1-30 characters, and may only contain _ or - after the first character."
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
